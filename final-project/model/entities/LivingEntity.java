@@ -44,15 +44,37 @@ public abstract class LivingEntity extends Entity {
         this.tieBreaker = RANDOM.nextInt(100);
     }
 
-    public int getHealth()           { return health; }
-    public int getMaxHealth()        { return maxHealth; }
-    public int getDamage()           { return baseDamage + damageBonus; }
-    public int getDefense()          { return baseDefense + defenseBonus; }
-    public int getSpeed()            { return Math.max(1, baseSpeed + speedBonus); }
+    public int getHealth() {
+        return health;
+    }
 
-    public void addDamageBonus(int bonus)  { this.damageBonus += bonus; }
-    public void addDefenseBonus(int bonus) { this.defenseBonus += bonus; }
-    public void addSpeedBonus(int bonus)   { this.speedBonus += bonus; }
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+
+    public int getDamage() {
+        return baseDamage + damageBonus;
+    }
+
+    public int getDefense() {
+        return baseDefense + defenseBonus;
+    }
+
+    public int getSpeed() {
+        return Math.max(1, baseSpeed + speedBonus);
+    }
+
+    public void addDamageBonus(int bonus) {
+        this.damageBonus += bonus;
+    }
+
+    public void addDefenseBonus(int bonus) {
+        this.defenseBonus += bonus;
+    }
+
+    public void addSpeedBonus(int bonus) {
+        this.speedBonus += bonus;
+    }
 
     public int getInitiative() {
         return getSpeed() * 100 + tieBreaker;  // Perfect: no ties, speed dominates
@@ -104,9 +126,12 @@ public abstract class LivingEntity extends Entity {
     }
 
     public boolean isAllyOf(LivingEntity other) {
-        return other != null
-                && this.faction == other.faction
-                && this.faction != Faction.NEUTRAL;
+        Objects.requireNonNull(other, "Cannot check enmity with null entity");
+
+        if (this.faction == Faction.NEUTRAL || other.faction == Faction.NEUTRAL) {
+            return false;
+        }
+        return this.faction == other.faction;
     }
 
     public final void act(Simulation simulation) {

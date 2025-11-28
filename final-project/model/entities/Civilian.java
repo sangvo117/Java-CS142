@@ -29,8 +29,8 @@ public class Civilian extends Human {
     }
 
     private Action pickup(LivingEntity me, Simulation g) {
-        tryPickup(g);
-        return Action.PICKUP;
+        if (tryPickup(g)) return Action.PICKUP;
+        return Action.IDLE;
     }
 
     private Action formSettlement(LivingEntity me, Simulation g) {

@@ -33,8 +33,8 @@ public class Soldier extends Human {
     }
 
     private Action pickup(LivingEntity me, Simulation sim) {
-        tryPickup(sim);
-        return Action.PICKUP;
+        if (tryPickup(sim)) return Action.PICKUP;
+        return Action.IDLE;
     }
 
     private Action defendSettlement(LivingEntity me, Simulation sim) {

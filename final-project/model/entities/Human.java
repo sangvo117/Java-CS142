@@ -83,19 +83,23 @@ public abstract class Human extends LivingEntity {
         }
     }
 
-    protected void tryPickup(Simulation sim) {
+    protected boolean tryPickup(Simulation sim) {
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
-                int newX = getX() + dx, newY = getY() + dy;
+                int newX = getX() + dx;
+                int newY = getY() + dy;
+
                 if (sim.isValid(newX, newY)) {
                     Entity e = sim.get(new Cell(newX, newY));
+
                     if (e instanceof Equipment) {
                         Equipment equipment = (Equipment) e;
                         equipment.useOn(this, sim);
-                        return;
+                        return true;
                     }
                 }
             }
         }
+        return false;
     }
 }
