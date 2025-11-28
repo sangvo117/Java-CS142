@@ -4,7 +4,7 @@ import model.world.Simulation;
 import view.GridPanel;
 import view.StatusPanel;
 
-import javax.swing.Timer;
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 

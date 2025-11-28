@@ -1,19 +1,26 @@
 package model.items;
 
 import model.entities.LivingEntity;
-import util.config.SimulationConstants;
+import model.world.Cell;
+
+import static util.config.SimulationConstants.ARMOR_DEFENSE_BONUS;
+import static util.config.SimulationConstants.ARMOR_STRING;
 
 /**
  * Armor — increases defense.
  */
 public class Armor extends Equipment {
-    @Override
-    protected void applyEffect(LivingEntity target) {
-        target.addDefenseBonus(SimulationConstants.ARMOR_DEFENSE_BONUS);
+    public Armor(Cell cell) {
+        this(cell,  ARMOR_STRING);
+    }
+
+    public Armor(Cell cell, String displayName) {
+        super(cell, displayName);
     }
 
     @Override
-    public char getSymbol() {
-        return SimulationConstants.ARMOR_CHAR;
+    protected void applyEffect(LivingEntity target) {
+        target.addDefenseBonus(ARMOR_DEFENSE_BONUS);
     }
+
 }

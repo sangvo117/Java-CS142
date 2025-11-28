@@ -1,8 +1,12 @@
 package model.world;
 
+import model.entities.Civilian;
+import model.entities.CommonZombie;
 import model.entities.Entity;
-import model.entities.*;
-import model.items.*;
+import model.entities.Soldier;
+import model.items.Armor;
+import model.items.Medkit;
+import model.items.Weapon;
 
 import java.util.Random;
 

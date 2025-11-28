@@ -1,22 +1,23 @@
 package model.entities;
 
-import model.entities.behavior.Action;
 import model.entities.behavior.Behavior;
-import util.config.SimulationConstants;
+import model.enums.Action;
+import model.world.Cell;
 import model.world.Simulation;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static util.config.SimulationConstants.*;
+
 public class Civilian extends Human {
-    public Civilian() {
-        super(SimulationConstants.CIVILIAN_CHAR);
-        maxHealth = SimulationConstants.CIVILIAN_HEALTH;
-        health = SimulationConstants.CIVILIAN_HEALTH;
-        baseDamage = SimulationConstants.CIVILIAN_DAMAGE;
-        baseSpeed = SimulationConstants.CIVILIAN_SPEED;
+    public Civilian(Cell cell) {
+        super(cell, CIVILIAN_STRING, CIVILIAN_HEALTH, CIVILIAN_DAMAGE, HUMAN_DEFENSE_DEFAULT, CIVILIAN_SPEED);
     }
 
+    public Civilian(Cell cell, String name, int maxHeath, int damage, int defense, int speed) {
+        super(cell, name, maxHeath, damage, defense, speed);
+    }
 
     @Override
     protected List<Behavior> getBehaviors() {
