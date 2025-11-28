@@ -62,9 +62,9 @@ public final class SimulationConstants {
     public static final char INFECTION_CHAR = 'I';
     public static final String INFECTION_STRING = "Infection";
 
-    // Empty
-    public static final char EMPTY_CHAR = '.';
-    public static final String EMPTY_STRING = "Empty";
+    // Floor
+    public static final char FLOOR_CHAR = '.';
+    public static final String FLOOR_STRING = "Floor";
 
     // Equipment
     public static final int WEAPON_DAMAGE_BONUS = 20;
@@ -81,6 +81,21 @@ public final class SimulationConstants {
     public static final String MEDKIT_STRING = "Medkit";
 
     // Entity Stats
+    public static final int HUMAN_HEALTH_DEFAULT = 100;
+    public static final int HUMAN_DAMAGE_DEFAULT = 15;
+    public static final int HUMAN_DEFENSE_DEFAULT = 5;
+    public static final int HUMAN_SPEED_DEFAULT = 5;
+    public static final char HUMAN_CHAR_DEFAULT = 'H';
+    public static final String HUMAN_STRING_DEFAULT = "Human";
+
+    public static final int UNDEAD_HEALTH_DEFAULT = 50;
+    public static final int UNDEAD_DAMAGE_DEFAULT = 20;
+    public static final int UNDEAD_DEFENSE_DEFAULT = 0;
+    public static final int UNDEAD_SPEED_DEFAULT = 4;
+    public static final char UNDEAD_CHAR_DEFAULT = 'U';
+    public static final String UNDEAD_STRING_DEFAULT = "Undead";
+
+
     public static final int CIVILIAN_HEALTH = 50;
     public static final int CIVILIAN_DAMAGE = 5;
     public static final int CIVILIAN_SPEED = 9;
@@ -89,6 +104,7 @@ public final class SimulationConstants {
 
     public static final int SOLDIER_HEALTH = 100;
     public static final int SOLDIER_DAMAGE = 25;
+    public static final int SOLDIER_DEFENSE = 10;
     public static final int SOLDIER_SPEED = 11;
     public static final char SOLDIER_CHAR = 'S';
     public static final String SOLDIER_STRING = "Soldier";

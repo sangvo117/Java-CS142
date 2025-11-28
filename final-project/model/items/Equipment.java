@@ -2,6 +2,7 @@ package model.items;
 
 import model.entities.LivingEntity;
 import model.entities.NonLivingEntity;
+import model.world.Cell;
 import model.world.Simulation;
 
 /**
@@ -9,6 +10,10 @@ import model.world.Simulation;
  * When used, applies effect and removes itself from the world.
  */
 public abstract class Equipment extends NonLivingEntity {
+
+    protected Equipment(Cell cell, String displayName) {
+        super(cell, displayName);
+    }
 
     /**
      * Uses this equipment on a target entity.
@@ -21,7 +26,4 @@ public abstract class Equipment extends NonLivingEntity {
 
     /** Applies the equipment's effect to the target */
     protected abstract void applyEffect(LivingEntity target);
-
-    @Override
-    public abstract char getSymbol();
 }

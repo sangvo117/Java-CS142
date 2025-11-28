@@ -1,20 +1,25 @@
 package model.items;
 
 import model.entities.LivingEntity;
-import util.config.SimulationConstants;
+import model.world.Cell;
+
+import static util.config.SimulationConstants.*;
 
 /**
  * Weapon — increases damage, slows movement.
  */
 public class Weapon extends Equipment {
-    @Override
-    protected void applyEffect(LivingEntity target) {
-        target.addDamageBonus(SimulationConstants.WEAPON_DAMAGE_BONUS);
-        target.addSpeedBonus(SimulationConstants.WEAPON_SPEED_PENALTY);
+    public Weapon(Cell cell) {
+        this(cell, WEAPON_STRING);
+    }
+
+    protected Weapon(Cell cell, String displayName) {
+        super(cell, displayName);
     }
 
     @Override
-    public char getSymbol() {
-        return SimulationConstants.WEAPON_CHAR;
+    protected void applyEffect(LivingEntity target) {
+        target.addDamageBonus(WEAPON_DAMAGE_BONUS);
+        target.addSpeedBonus(WEAPON_SPEED_PENALTY);
     }
 }

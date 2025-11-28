@@ -1,7 +1,8 @@
 package model.entities;
 
-import model.entities.behavior.Action;
 import model.entities.behavior.Behavior;
+import model.enums.Action;
+import model.world.Cell;
 import model.world.Simulation;
 
 import java.util.Arrays;
@@ -13,12 +14,12 @@ import static util.config.SimulationConstants.*;
  * Soldier that defends human settlements.
  */
 public class Soldier extends Human {
-    public Soldier() {
-        super(SOLDIER_CHAR);
-        maxHealth = SOLDIER_HEALTH;
-        health = SOLDIER_HEALTH;
-        baseDamage = SOLDIER_DAMAGE;
-        baseSpeed = SOLDIER_SPEED;
+    public Soldier(Cell cell) {
+        super(cell, SOLDIER_STRING, SOLDIER_HEALTH, SOLDIER_DAMAGE, SOLDIER_DEFENSE, SOLDIER_SPEED);
+    }
+
+    public Soldier(Cell cell, String name, int maxHeath, int damage, int defense, int speed) {
+        super(cell, name, maxHeath, damage, defense, speed);
     }
 
     @Override
@@ -26,32 +27,40 @@ public class Soldier extends Human {
         return Arrays.asList(
                 this::pickup,
                 this::defendSettlement,
-                this::attackZombies,
+                this::attackUndead,
                 this::infectionCheck
         );
     }
 
-    private Action pickup(LivingEntity me, Simulation g) {
-        tryPickup(g);
-        return Action.PICKUP;
+    private Action pickup(LivingEntity me, Simulation sim) {
+        if (tryPickup(sim)) return Action.PICKUP;
+        return Action.IDLE;
     }
 
-    private Action defendSettlement(LivingEntity me, Simulation g) {
-        Civilian c = g.findNearest(me.getX(), me.getY(), Civilian.class);
-        if (c != null && c.isInSettlement(g) && g.distanceBetween(me, c) > 4) {
-            g.moveToward(c.getX(), c.getY(), me);
+    private Action defendSettlement(LivingEntity me, Simulation sim) {
+        Civilian nearest = sim.findNearest(me.getCell(), Civilian.class);
+        if (nearest != null && nearest.isInSettlement(sim)) {
+            int distance = me.getCell().distanceTo(nearest.getCell());
+            if (distance > 4) {
+                sim.moveToward(nearest.getCell(), me);
+            }
         }
         return Action.GROUP;
     }
 
-    private Action attackZombies(LivingEntity me, Simulation g) {
-        LivingEntity z = g.findNearest(me.getX(), me.getY(), Zombie.class);
-        if (z != null && g.distanceBetween(me, z) <= 3) attack(z);
+    private Action attackUndead(LivingEntity me, Simulation sim) {
+        Undead nearest = sim.findNearest(me.getCell(), Undead.class);
+        if (nearest != null && me.getCell().distanceTo(nearest.getCell()) <= 3) {
+            me.attack(nearest);
+        }
         return Action.ATTACK;
     }
 
-    private Action infectionCheck(LivingEntity me, Simulation g) {
-        decrementInfectionTimer();
+    private Action infectionCheck(LivingEntity me, Simulation sim) {
+        if (me instanceof Human) {
+            Human human = (Human) me;
+            human.decrementInfectionTimer();
+        }
         return Action.IDLE;
     }
 }
