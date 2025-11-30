@@ -11,14 +11,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static util.DebugLogger.*;
+
 /**
  * Manages turn order, initiative, actions, infection, and cleanup.
- * The heart of the simulation loop.
  */
 public class TurnService {
-
     private final WorldGrid grid;
     private final Simulation simulation;
+    private int turnCounter = 0;
 
     public TurnService(WorldGrid grid, Simulation simulation) {
         this.grid = grid;
@@ -29,44 +30,52 @@ public class TurnService {
      * Executes one complete game turn.
      */
     public void processTurn() {
-        List<LivingEntity> leList = collectActiveEntities();
-        sortByInitiative(leList);
-        executeActions(leList);
+        turnCounter++;
+        System.out.println();
+        System.out.println();
+        System.out.println("=============================================================");
+        turn("TURN: " + turnCounter);
+
+
+        List<LivingEntity> list = collectActiveEntities();
+        sortByInitiative(list);
+        executeActions(list);
         transformInfectedHumans();
         cleanupDeadEntities();
+        System.out.println("=============================================================");
     }
 
     /**
      * Collects all living, active entities from the grid.
      */
     private List<LivingEntity> collectActiveEntities() {
-        List<LivingEntity> leList = new ArrayList<>();
+        List<LivingEntity> list = new ArrayList<>();
 
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 LivingEntity le = grid.getLivingAt(x, y);
                 if (le != null && le.isPresent()) {
-                    leList.add(le);
+                    list.add(le);
                 }
             }
         }
-        return leList;
+        return list;
     }
 
     /**
-     * Sorts entities by initiative (speed × 100 + tieBreaker), descending.
+     * Sorts entities by initiative, descending.
      */
-    private void sortByInitiative(List<LivingEntity> leList) {
-        leList.sort(Comparator.comparingInt(LivingEntity::getInitiative).reversed());
+    private void sortByInitiative(List<LivingEntity> list) {
+        list.sort(Comparator.comparingInt(LivingEntity::getInitiative).reversed());
     }
 
     /**
      * Lets every living entity perform its behavior chain.
      */
-    private void executeActions(List<LivingEntity> leList) {
-        for (LivingEntity actor : leList) {
-            if (actor.isPresent()) {
-                actor.act(simulation);
+    private void executeActions(List<LivingEntity> list) {
+        for (LivingEntity le : list) {
+            if (le.isPresent()) {
+                le.act(simulation);
             }
         }
     }
@@ -89,7 +98,6 @@ public class TurnService {
 
     /**
      * Removes dead entities from the grid.
-     * Override in subclasses or configure behavior later (e.g. leave corpse).
      */
     private void cleanupDeadEntities() {
         for (int y = 0; y < grid.getHeight(); y++) {

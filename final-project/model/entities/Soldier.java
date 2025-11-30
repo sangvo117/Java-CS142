@@ -4,15 +4,14 @@ import model.entities.behavior.Behavior;
 import model.enums.Action;
 import model.world.Cell;
 import model.world.Simulation;
+import util.DebugLogger;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
+import static util.DebugLogger.debug;
 import static util.config.SimulationConstants.*;
 
-/**
- * Soldier that defends human settlements.
- */
 public class Soldier extends Human {
     public Soldier(Cell cell) {
         super(cell, SOLDIER_STRING, SOLDIER_HEALTH, SOLDIER_DAMAGE, SOLDIER_DEFENSE, SOLDIER_SPEED);
@@ -24,43 +23,32 @@ public class Soldier extends Human {
 
     @Override
     protected List<Behavior> getBehaviors() {
-        return Arrays.asList(
-                this::pickup,
-                this::defendSettlement,
-                this::attackUndead,
-                this::infectionCheck
-        );
+        List<Behavior> behaviors = new ArrayList<>(super.getBehaviors());
+        behaviors.add(1, attackUndead);
+        return behaviors;
     }
 
-    private Action pickup(LivingEntity me, Simulation sim) {
-        if (tryPickup(sim)) return Action.PICKUP;
-        return Action.IDLE;
-    }
+    private final Behavior attackUndead = new Behavior() {
+        Undead target;
 
-    private Action defendSettlement(LivingEntity me, Simulation sim) {
-        Civilian nearest = sim.findNearest(me.getCell(), Civilian.class);
-        if (nearest != null && nearest.isInSettlement(sim)) {
-            int distance = me.getCell().distanceTo(nearest.getCell());
-            if (distance > 4) {
-                sim.moveToward(nearest.getCell(), me);
+        @Override
+        public Action execute(LivingEntity me, Simulation sim) {
+            if (DebugLogger.isEnabled()) {
+                debug("[ATTACK] Before: " + me + " checking attack range");
             }
-        }
-        return Action.GROUP;
-    }
 
-    private Action attackUndead(LivingEntity me, Simulation sim) {
-        Undead nearest = sim.findNearest(me.getCell(), Undead.class);
-        if (nearest != null && me.getCell().distanceTo(nearest.getCell()) <= 3) {
-            me.attack(nearest);
+            target = sim.findNearest(me.getCell(), Undead.class);
+            if (target != null) {
+                me.attack(target);
+                return Action.ATTACK;
+            }
+            return Action.IDLE;
         }
-        return Action.ATTACK;
-    }
 
-    private Action infectionCheck(LivingEntity me, Simulation sim) {
-        if (me instanceof Human) {
-            Human human = (Human) me;
-            human.decrementInfectionTimer();
+        @Override
+        public String getDebugInfo(LivingEntity me) {
+            String msg = "[ATTACK] After: " + me + " attacks ";
+            return msg + (target != null ? target : " no zombie");
         }
-        return Action.IDLE;
-    }
+    };
 }

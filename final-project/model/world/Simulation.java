@@ -45,12 +45,18 @@ public class Simulation {
         }
     }
 
-    public void moveAwayFrom(LivingEntity mover, LivingEntity avoid) {
-        if (avoid == null) return;
+    public void moveAwayFrom(LivingEntity mover, Entity avoid) {
+        if (avoid == null || avoid.getCell() == null) return;
+
         int dx = mover.getX() - avoid.getX();
         int dy = mover.getY() - avoid.getY();
-        Cell away = new Cell(mover.getX() + Integer.signum(dx), mover.getY() + Integer.signum(dy));
-        moveToward(away, mover);
+        Cell away = new Cell(
+                mover.getX() + Integer.signum(dx),
+                mover.getY() + Integer.signum(dy));
+
+        if (isValid(away)) {
+            moveToward(away, mover);
+        }
     }
 
     public void moveRandomly(LivingEntity entity) {

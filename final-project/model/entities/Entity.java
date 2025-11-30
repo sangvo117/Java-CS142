@@ -15,9 +15,17 @@ public abstract class Entity {
         this.displayName = displayName != null ? displayName : "";
     }
 
-    public int getX() { return cell.x; }
-    public int getY() { return cell.y; }
-    public Cell getCell() { return cell; }
+    public int getX() {
+        return cell.x;
+    }
+
+    public int getY() {
+        return cell.y;
+    }
+
+    public Cell getCell() {
+        return cell;
+    }
 
     public void setPosition(Cell cell) {
         this.cell = Objects.requireNonNull(cell, "Cell cannot be null");
@@ -58,7 +66,9 @@ public abstract class Entity {
 
     @Override
     public String toString() {
-        return String.format("%s[%s]@(%d,%d)",
-                getClass().getSimpleName(), displayName, getX(), getY());
+        String name = getDisplayName();
+        String id = Integer.toHexString(System.identityHashCode(this) & 0xFFFF);
+        String pos = String.format("@(%d,%d)", getX(), getY());
+        return String.format("%s#%s%s", name, id, pos);
     }
 }

@@ -4,10 +4,12 @@ import model.entities.behavior.Behavior;
 import model.enums.Action;
 import model.world.Cell;
 import model.world.Simulation;
+import util.DebugLogger;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
+import static util.DebugLogger.*;
 import static util.config.SimulationConstants.*;
 
 public class Civilian extends Human {
@@ -21,25 +23,41 @@ public class Civilian extends Human {
 
     @Override
     protected List<Behavior> getBehaviors() {
-        return Arrays.asList(
-                this::pickup,
-                this::formSettlement,
-                this::infectionCheck
-        );
+        List<Behavior> behaviors = new ArrayList<>(super.getBehaviors());
+        behaviors.add(0, runAway);
+        return behaviors;
     }
 
-    private Action pickup(LivingEntity me, Simulation g) {
-        if (tryPickup(g)) return Action.PICKUP;
-        return Action.IDLE;
-    }
+    private final Behavior runAway = new Behavior() {
+        Undead zombie;
 
-    private Action formSettlement(LivingEntity me, Simulation g) {
-        moveToFormSettlement(g);
-        return Action.GROUP;
-    }
+        @Override
+        public Action execute(LivingEntity me, Simulation sim) {
+            if (DebugLogger.isEnabled()) {
+                debug("[MOVE] Before: " + me + " scanning zombies");
+            }
 
-    private Action infectionCheck(LivingEntity me, Simulation g) {
-        decrementInfectionTimer();
-        return Action.IDLE;
-    }
+            zombie = sim.findNearest(me.getCell(), Undead.class);
+
+            if (zombie != null && me.getCell().distanceTo(zombie.getCell()) <= ZOMBIE_REPEL_RANGE) {
+                sim.moveAwayFrom(me, zombie);
+                if (DebugLogger.isEnabled()) {
+                    debug("[MOVE] After: " + me + " moved away from " + zombie);
+                }
+
+                return Action.MOVE;
+            }
+
+            if (DebugLogger.isEnabled()) {
+                debug("[MOVE] After: " + me + " moved away from no one");
+            }
+            return Action.IDLE;
+        }
+
+        @Override
+        public String getDebugInfo(LivingEntity me) {
+            String msg = "[MOVE] " + me + " moved away from ";
+            return msg + (zombie != null ? zombie : "no zombie");
+        }
+    };
 }
