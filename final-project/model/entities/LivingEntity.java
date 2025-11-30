@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import static util.DebugLogger.*;
+import static util.config.SimulationConstants.MIN_DAMAGE_DEFAULT;
 
 /**
  * Base class for all living entities (humans, zombies).
@@ -97,10 +98,10 @@ public abstract class LivingEntity extends Entity {
             return false;
         }
 
-        int damageTaken = Math.max(0, rawDamage - getDefense());
+        int damageTaken = Math.max(MIN_DAMAGE_DEFAULT, rawDamage - getDefense());
         health = Math.max(0, health - damageTaken);
 
-        boolean wasHit = damageTaken > 0;
+        boolean wasHit = damageTaken > MIN_DAMAGE_DEFAULT;
         boolean died = health == 0;
 
         if (died) {

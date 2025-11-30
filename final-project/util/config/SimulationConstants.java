@@ -71,7 +71,7 @@ public final class SimulationConstants {
     public static final int RIVAL_REPEL_RANGE = 8;
 
     // Infection
-    public static final double INFECTION_RATE_DEFAULT = 0.5;
+    public static final double INFECTION_RATE_DEFAULT = 0.4;
     public static final int INFECTION_TURNS = 3;
     public static final char INFECTION_CHAR = 'I';
     public static final String INFECTION_STRING = "Infection";
@@ -96,6 +96,8 @@ public final class SimulationConstants {
     public static final String MEDKIT_STRING = "Medkit";
 
     // Entity Stats
+    public static final int MIN_DAMAGE_DEFAULT = 1;
+
     public static final int HUMAN_HEALTH_DEFAULT = 100;
     public static final int HUMAN_DAMAGE_DEFAULT = 15;
     public static final int HUMAN_DEFENSE_DEFAULT = 5;
@@ -139,7 +141,7 @@ public final class SimulationConstants {
 
     // Spawn Counts
     public static final int SPAWN_CIVILIANS = 20;
-    public static final int SPAWN_SOLDIERS = 8;
+    public static final int SPAWN_SOLDIERS = 10;
     public static final int SPAWN_COMMON_ZOMBIES = 25;
     public static final int SPAWN_ELITES_ZOMBIES = 5;
     public static final int SPAWN_WEAPONS = 10;
