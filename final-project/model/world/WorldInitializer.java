@@ -1,9 +1,6 @@
 package model.world;
 
-import model.entities.Civilian;
-import model.entities.CommonZombie;
-import model.entities.Entity;
-import model.entities.Soldier;
+import model.entities.*;
 import model.items.Armor;
 import model.items.Medkit;
 import model.items.Weapon;
@@ -25,7 +22,7 @@ public class WorldInitializer {
         spawn(Civilian::new, SPAWN_CIVILIANS);
         spawn(Soldier::new, SPAWN_SOLDIERS);
         spawn(CommonZombie::new, SPAWN_COMMON_ZOMBIES);
-
+        spawn(EliteZombie::new, SPAWN_ELITES_ZOMBIES);
         spawn(Weapon::new, SPAWN_WEAPONS);
         spawn(Armor::new, SPAWN_ARMORS);
         spawn(Medkit::new, SPAWN_MEDKITS);

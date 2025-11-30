@@ -25,7 +25,6 @@ public class SimulationController {
                 }
             }
         });
-        timer.start();
     }
 
 
@@ -39,7 +38,7 @@ public class SimulationController {
     }
 
     public void slower() {
-        setSpeed(delayMs + 50);
+        setSpeed(Math.max(50, delayMs + 50));
     }
 
     public void stopTimer() {
@@ -48,5 +47,9 @@ public class SimulationController {
 
     public void startTimer() {
         timer.start();
+    }
+
+    public boolean isRunning() {
+        return timer.isRunning();
     }
 }

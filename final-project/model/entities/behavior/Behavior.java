@@ -5,20 +5,19 @@ import model.enums.Action;
 import model.world.Simulation;
 
 /**
- * Functional interface for entity behaviors.
+ * Interface for entity behaviors.
  */
-@FunctionalInterface
 public interface Behavior {
     /**
      * @return the type of action performed
      */
-    Action execute(LivingEntity entity, Simulation simulation);
+    Action execute(LivingEntity me, Simulation sim);
 
     /**
      * Optional debug description. Default = empty.
      * Override in concrete behaviors for rich logging.
      */
-    default String getDebugInfo(LivingEntity entity) {
+    default String getDebugInfo(LivingEntity me) {
         return "";
     }
 }

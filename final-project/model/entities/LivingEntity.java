@@ -1,15 +1,19 @@
 package model.entities;
 
 import model.entities.behavior.Behavior;
+import model.entities.behavior.Usable;
 import model.enums.Action;
 import model.enums.Faction;
 import model.world.Cell;
 import model.world.Simulation;
+import util.DebugLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+
+import static util.DebugLogger.*;
 
 /**
  * Base class for all living entities (humans, zombies).
@@ -21,11 +25,11 @@ public abstract class LivingEntity extends Entity {
 
     protected int maxHealth;
     protected int health;
-    protected int baseDamage;
+    protected int baseAttack;
     protected int baseDefense;
     protected int baseSpeed;
 
-    private int damageBonus = 0;
+    private int attackBonus = 0;
     private int defenseBonus = 0;
     private int speedBonus = 0;
 
@@ -33,11 +37,11 @@ public abstract class LivingEntity extends Entity {
 
     private final Faction faction;
 
-    protected LivingEntity(Cell cell, String displayName, int maxHealth, int damage, int defense, int speed, Faction faction) {
+    protected LivingEntity(Cell cell, String displayName, int maxHealth, int attack, int defense, int speed, Faction faction) {
         super(cell, displayName);
         this.maxHealth = maxHealth;
         this.health = maxHealth;
-        this.baseDamage = damage;
+        this.baseAttack = attack;
         this.baseDefense = defense;
         this.baseSpeed = speed;
         this.faction = Objects.requireNonNull(faction, "Faction cannot be null");
@@ -52,8 +56,8 @@ public abstract class LivingEntity extends Entity {
         return maxHealth;
     }
 
-    public int getDamage() {
-        return baseDamage + damageBonus;
+    public int getAttack() {
+        return baseAttack + attackBonus;
     }
 
     public int getDefense() {
@@ -64,8 +68,8 @@ public abstract class LivingEntity extends Entity {
         return Math.max(1, baseSpeed + speedBonus);
     }
 
-    public void addDamageBonus(int bonus) {
-        this.damageBonus += bonus;
+    public void addAttackBonus(int bonus) {
+        this.attackBonus += bonus;
     }
 
     public void addDefenseBonus(int bonus) {
@@ -77,25 +81,56 @@ public abstract class LivingEntity extends Entity {
     }
 
     public int getInitiative() {
-        return getSpeed() * 100 + tieBreaker;  // Perfect: no ties, speed dominates
+        return getSpeed() * 100 + tieBreaker;
     }
 
     public int getTieBreaker() {
         return tieBreaker;
     }
 
-    public void takeDamage(int rawDamage) {
+    public boolean takeDamage(int rawDamage, LivingEntity attacker) {
+        if (!isPresent()) return false;
+
         if (rawDamage <= 0) {
             health = Math.min(maxHealth, health - rawDamage);
-            return;
+            combat(this + " has been HEALED by " + attacker);
+            return false;
         }
+
         int damageTaken = Math.max(0, rawDamage - getDefense());
         health = Math.max(0, health - damageTaken);
+
+        boolean wasHit = damageTaken > 0;
+        boolean died = health == 0;
+
+        if (died) {
+            combat(this + " has been KILLED by " + attacker);
+        } else if (wasHit) {
+            combat(this + " takes " + damageTaken + " damage from " + attacker);
+
+            if (this instanceof Human && attacker instanceof Undead) {
+                Undead zombie = (Undead) attacker;
+                if (RANDOM.nextDouble() < zombie.getInfectionRate()) {
+                    ((Human) this).infect(zombie.getInfectionTurns());
+                    combat(this + " infected by " + attacker);
+                }
+            }
+        }
+
+        return wasHit;
     }
 
     public void attack(LivingEntity target) {
         if (target != null && target.isPresent()) {
-            target.takeDamage(getDamage());
+            int damage = getAttack();
+            combat(this + " attacks " + target + " for " + damage + " dmg");
+            target.takeDamage(damage, this);
+        }
+    }
+
+    public void heal(int amount) {
+        if (amount > 0) {
+            this.health = Math.min(this.maxHealth, this.health + amount);
         }
     }
 
@@ -137,9 +172,26 @@ public abstract class LivingEntity extends Entity {
     public final void act(Simulation simulation) {
         if (!isPresent()) return;
 
+        if (DebugLogger.isEnabled()) {
+            System.out.println();
+            System.out.println();
+            DebugLogger.debug("=== " + this + " acting (initiative: " + this.getInitiative() + ") ===");
+        }
+
         for (Behavior behavior : getBehaviors()) {
-            Action result = behavior.execute(this, simulation);
-            if (result == Action.DEAD || result == Action.TRANSFORM) {
+            Action action = behavior.execute(this, simulation);
+
+            if (DebugLogger.isEnabled()) {
+                String debugInfo = behavior.getDebugInfo(this);
+                if (debugInfo != null && !debugInfo.trim().isEmpty()) {
+                    DebugLogger.info(this + " → " + debugInfo);
+                }
+            }
+
+            if (action == Action.DEAD || action == Action.TRANSFORM) {
+                if (DebugLogger.isEnabled()) {
+                    DebugLogger.combat(this + " stopped acting: " + action);
+                }
                 break;
             }
         }
@@ -147,5 +199,19 @@ public abstract class LivingEntity extends Entity {
 
     protected List<Behavior> getBehaviors() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public String toString() {
+        String base = super.toString();
+
+        if (!isPresent()) {
+            return base + " [DEAD]";
+        }
+
+        String state = String.format(" atk=%d, def=%d, hp=%d/%d, spd=%d",
+                getAttack(), getDefense(), getHealth(), getMaxHealth(), getSpeed());
+
+        return base + state;
     }
 }

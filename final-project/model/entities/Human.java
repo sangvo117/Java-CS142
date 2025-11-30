@@ -1,18 +1,27 @@
 package model.entities;
 
+import model.entities.behavior.Behavior;
+import model.entities.behavior.Usable;
+import model.enums.Action;
 import model.enums.Faction;
-import model.items.Equipment;
+import model.items.Item;
 import model.world.Cell;
 import model.world.Simulation;
+import util.DebugLogger;
+import util.Herding;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static util.DebugLogger.*;
 import static util.config.SimulationConstants.*;
 
 /**
- * Base class for humans with infection and settlement behavior.
+ * Base class for humans with pickup, infectionProgress and formSettlement behavior.
  */
 public abstract class Human extends LivingEntity {
     protected boolean infected = false;
-    protected int infectionTimer = 0;
+    protected int infectionTurns = 0;
 
     protected Human(Cell cell) {
         this(cell, HUMAN_STRING_DEFAULT,
@@ -27,79 +36,138 @@ public abstract class Human extends LivingEntity {
         super(cell, displayName, maxHealth, damage, defense, speed, Faction.HUMAN);
     }
 
+    @Override
+    protected List<Behavior> getBehaviors() {
+        List<Behavior> behaviors = new ArrayList<>();
+        behaviors.add(pickup);
+        behaviors.add(formSettlement);
+        behaviors.add(infectionProgress);
+        return behaviors;
+    }
+
+    private final Behavior pickup = new Behavior() {
+        Usable target;
+
+        @Override
+        public Action execute(LivingEntity me, Simulation sim) {
+            if (DebugLogger.isEnabled()) {
+                pickup("Before: " + me + " scanning for item");
+            }
+
+            if (me instanceof Human) {
+                for (int dy = -SEARCH_RADIUS_DEFAULT; dy <= SEARCH_RADIUS_DEFAULT; dy++) {
+                    for (int dx = -SEARCH_RADIUS_DEFAULT; dx <= SEARCH_RADIUS_DEFAULT; dx++) {
+                        int x = me.getX() + dx;
+                        int y = me.getY() + dy;
+
+                        if (!sim.isValid(x, y)) continue;
+
+                        Entity e = sim.get(new Cell(x, y));
+                        if (e instanceof Item) {
+                            target = (Item) e;
+                            target.useOn((Human) me, sim);
+                            if (DebugLogger.isEnabled()) {
+                                pickup("After: " + me + " uses " + target);
+                            }
+                            return Action.PICKUP;
+                        }
+                    }
+                }
+            }
+
+            if (DebugLogger.isEnabled()) {
+                pickup("After: " + me + " picks up no item");
+            }
+            return Action.IDLE;
+        }
+
+        @Override
+        public String getDebugInfo(LivingEntity me) {
+            String msg = "[PICK UP] " + me + " picks up ";
+            return msg + (target != null ? target : "no item");
+        }
+    };
+
+    private final Behavior formSettlement =
+            Herding.toward(Human.class, "settlement", SETTLEMENT_FORMATION_RADIUS);
+
+    private final Behavior infectionProgress = new Behavior() {
+        @Override
+        public Action execute(LivingEntity me, Simulation sim) {
+            if (infected) {
+                if (DebugLogger.isEnabled()) {
+                    debug("[INFECT] Before: " + me + " infection timer: " + infectionTurns);
+                }
+
+                decrementInfectionTurns();
+
+                if (infectionTurns == 0) {
+                    if (DebugLogger.isEnabled()) {
+                        debug("[TRANSFORM] After: " + me + " transform to zombie");
+                    }
+
+                    return Action.TRANSFORM;
+                }
+                if (DebugLogger.isEnabled()) {
+                    debug("[INFECT] After: " + me + " infection timer: " + infectionTurns);
+                }
+                return Action.INFECT;
+            }
+            if (DebugLogger.isEnabled()) {
+                debug("[INFECT] After: " + me + " healthy");
+            }
+            return Action.IDLE;
+        }
+
+        @Override
+        public String getDebugInfo(LivingEntity me) {
+            if (!infected) return "healthy";
+            return "INFECTED (" + infectionTurns + " turns)";
+        }
+    };
 
     @Override
     public char getSymbol() {
         if (shouldBecomeZombie()) return COMMON_ZOMBIE_CHAR;
-        if (infectionTimer > 0) return INFECTION_CHAR;
+        if (infectionTurns > 0) return INFECTION_CHAR;
         return super.getSymbol();
     }
 
-    public void infect() {
+    public boolean isInfected() {
+        return infected;
+    }
+
+    public int getInfectionTurns() {
+        return this.infectionTurns;
+    }
+
+    private void setInfectionTurns(int turns) {
+        this.infectionTurns = turns;
+    }
+
+    public void infect(int turns) {
         if (!infected) {
             infected = true;
-            infectionTimer = INFECTION_TURNS;
+            setInfectionTurns(turns);
         }
     }
 
-    protected void decrementInfectionTimer() {
-        if (infected) infectionTimer = Math.max(0, infectionTimer - 1);
+    protected void decrementInfectionTurns() {
+        if (infected) setInfectionTurns(Math.max(0, infectionTurns - 1));
     }
 
     public boolean shouldBecomeZombie() {
-        return infected && infectionTimer <= 0;
+        return infected && infectionTurns <= 0;
     }
 
-    protected boolean isInSettlement(Simulation sim) {
-        int nearbyHumans = 0;
-
-        for (int dy = -SETTLEMENT_FORMATION_RADIUS; dy <= SETTLEMENT_FORMATION_RADIUS; dy++) {
-            for (int dx = -SETTLEMENT_FORMATION_RADIUS; dx <= SETTLEMENT_FORMATION_RADIUS; dx++) {
-                int newX = getX() + dx;
-                int newY = getY() + dy;
-                if (!sim.isValid(newX, newY)) continue;
-
-                Entity entity = sim.get(new Cell(newX, newY));
-                if (entity instanceof Human
-                        && (Human) entity != this
-                        && ((Human) entity).isPresent()) {
-                    Human human = (Human) entity;
-                    nearbyHumans++;
-                }
-            }
+    @Override
+    public String toString() {
+        String base = super.toString();
+        if (infected) {
+            base += " [INFECTED";
+            if (infectionTurns > 0) base += " " + infectionTurns + "t";
+            base += "]";
         }
-
-        return nearbyHumans + 1 >= SETTLEMENT_MIN_SIZE;
-    }
-
-    protected void moveToFormSettlement(Simulation sim) {
-        if (isInSettlement(sim)) {
-            return;
-        }
-
-        Human nearest = sim.findNearest(getCell(), Human.class);
-        if (nearest != null && getCell().distanceTo(nearest.getCell()) > 1) {
-            sim.moveToward(nearest.getCell(), this);
-        }
-    }
-
-    protected boolean tryPickup(Simulation sim) {
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                int newX = getX() + dx;
-                int newY = getY() + dy;
-
-                if (sim.isValid(newX, newY)) {
-                    Entity e = sim.get(new Cell(newX, newY));
-
-                    if (e instanceof Equipment) {
-                        Equipment equipment = (Equipment) e;
-                        equipment.useOn(this, sim);
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        return base;
     }
 }

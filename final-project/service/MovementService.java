@@ -10,7 +10,7 @@ import java.util.Random;
 
 public class MovementService {
     private final WorldGrid grid;
-    private final Random rng = new Random();
+    private final Random RANDOM = new Random();
 
     public MovementService(WorldGrid grid) {
         this.grid = grid;
@@ -26,7 +26,7 @@ public class MovementService {
     }
 
     public void moveRandomly(LivingEntity entity) {
-        Direction dir = Direction.random(rng);
+        Direction dir = Direction.random(RANDOM);
         tryMove(entity, entity.getCell().move(dir));
     }
 

@@ -3,7 +3,7 @@ package model.world;
 import model.entities.Entity;
 import model.entities.LivingEntity;
 import model.enums.MoveResult;
-import model.items.Equipment;
+import model.items.Item;
 import util.config.SimulationConstants;
 
 import java.util.Objects;
@@ -79,7 +79,7 @@ public class WorldGrid {
             return MoveResult.SUCCESS;
         }
 
-        if (occupant instanceof Equipment) {
+        if (occupant instanceof Item) {
             performMove(entity, to);
             return MoveResult.LAND_ON_ITEM;  // auto-pickup later
         }
