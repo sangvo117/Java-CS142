@@ -23,32 +23,28 @@ public class SpawnConfig {
 
         JDialog dialog = new JDialog((Frame) null, "Zombie Apocalypse - Spawn Settings", true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setLayout(new BorderLayout(20, 20));
         dialog.setResizable(false);
 
-        JPanel mainPanel = new JPanel(new GridBagLayout());
+        // 2-column layout
+        JPanel mainPanel = new JPanel(new GridLayout(0, 2, 25, 15));
         mainPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
         mainPanel.setBackground(new Color(30, 30, 40));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 0, 8, 0);
+        addSliderWithInput(mainPanel, "Civilians", 60, DEFAULT_SPAWN_CIVILIANS);
+        addSliderWithInput(mainPanel, "Soldiers", 30, DEFAULT_SPAWN_SOLDIERS);
+        addSliderWithInput(mainPanel, "Common Zombies", 80, DEFAULT_SPAWN_COMMON_ZOMBIES);
+        addSliderWithInput(mainPanel, "Elite Zombies", 15, DEFAULT_SPAWN_ELITE_ZOMBIES);
 
-        addSliderWithInput(mainPanel, gbc, LABEL_FONT, INPUT_FONT, "Civilians",     0, 60, DEFAULT_SPAWN_CIVILIANS);
-        addSliderWithInput(mainPanel, gbc, LABEL_FONT, INPUT_FONT, "Soldiers",      0, 30, DEFAULT_SPAWN_SOLDIERS);
-        addSliderWithInput(mainPanel, gbc, LABEL_FONT, INPUT_FONT, "Common Zombies",0, 80, DEFAULT_SPAWN_COMMON_ZOMBIES);
-        addSliderWithInput(mainPanel, gbc, LABEL_FONT, INPUT_FONT, "Elite Zombies", 0, 15, DEFAULT_SPAWN_ELITE_ZOMBIES);
-        addSliderWithInput(mainPanel, gbc, LABEL_FONT, INPUT_FONT, "Weapons",       0, 30, DEFAULT_SPAWN_WEAPONS);
-        addSliderWithInput(mainPanel, gbc, LABEL_FONT, INPUT_FONT, "Armors",        0, 25, DEFAULT_SPAWN_ARMORS);
-        addSliderWithInput(mainPanel, gbc, LABEL_FONT, INPUT_FONT, "Medkits",       0, 30, DEFAULT_SPAWN_MEDKITS);
+        addSliderWithInput(mainPanel, "Weapons", 30, DEFAULT_SPAWN_WEAPONS);
+        addSliderWithInput(mainPanel, "Armors", 25, DEFAULT_SPAWN_ARMORS);
+        addSliderWithInput(mainPanel, "Medkits", 30, DEFAULT_SPAWN_MEDKITS);
 
         JButton startButton = new JButton("START SIMULATION");
         startButton.setFont(LABEL_FONT);
         startButton.setBackground(new Color(0, 150, 0));
         startButton.setForeground(Color.WHITE);
         startButton.setPreferredSize(new Dimension(300, 50));
-        startButton.addActionListener(e -> dialog.dispose());
+        startButton.addActionListener(_ -> dialog.dispose());
 
         JPanel bottomPanel = new JPanel();
         bottomPanel.setBackground(new Color(30, 30, 40));
@@ -58,76 +54,64 @@ public class SpawnConfig {
         dialog.add(bottomPanel, BorderLayout.SOUTH);
 
         dialog.pack();
+        dialog.setSize(720, 420);
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
 
-    private static void addSliderWithInput(
-            JPanel panel, GridBagConstraints gbc,
-            Font labelFont, Font inputFont,
-            String name, int min, int max, int initial) {
-
-        // Create a panel for label + input + slider
+    private static void addSliderWithInput(JPanel panel, String name, int max, int initial) {
         JPanel row = new JPanel(new BorderLayout(10, 0));
         row.setBackground(new Color(30, 30, 40));
 
-        // Label + Text Field
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         leftPanel.setBackground(new Color(30, 30, 40));
 
         JLabel label = new JLabel(name + ":");
-        label.setFont(labelFont);
+        label.setFont(LABEL_FONT);
         label.setForeground(Color.WHITE);
         leftPanel.add(label);
 
         JTextField input = new JTextField(String.valueOf(initial), 4);
-        input.setFont(inputFont);
+        input.setFont(INPUT_FONT);
         input.setHorizontalAlignment(JTextField.CENTER);
         input.setBackground(new Color(60, 60, 70));
         input.setForeground(Color.WHITE);
         input.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
-        leftPanel.add(input);
 
-        // Slider
-        JSlider slider = new JSlider(min, max, initial);
-        slider.setMajorTickSpacing((max - min) / 5);
-        slider.setMinorTickSpacing((max - min) / 10);
+        JSlider slider = new JSlider(0, max, initial);
+        slider.setMajorTickSpacing((max) / 5);
+        slider.setMinorTickSpacing((max) / 10);
         slider.setPaintTicks(true);
         slider.setPaintLabels(true);
         slider.setBackground(new Color(30, 30, 40));
         slider.setForeground(Color.WHITE);
 
-        // SYNC: Slider → Text Field
-        slider.addChangeListener(e -> {
+        slider.addChangeListener(_ -> {
             int value = slider.getValue();
             input.setText(String.valueOf(value));
             spawnCounts.put(name.toUpperCase().replace(" ", "_"), value);
         });
 
-        // SYNC: Text Field → Slider (with validation)
-        input.addActionListener(e -> updateFromInput(input, slider, min, max));
+        input.addActionListener(_ -> updateFromInput(input, slider, max, name));
         input.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
-                updateFromInput(input, slider, min, max);
+                updateFromInput(input, slider, max, name);
             }
         });
 
+        leftPanel.add(input);
         row.add(leftPanel, BorderLayout.WEST);
         row.add(slider, BorderLayout.CENTER);
 
-        panel.add(row, gbc);
-        panel.add(Box.createVerticalStrut(15), gbc);
+        panel.add(row);
     }
 
-    private static void updateFromInput(JTextField input, JSlider slider, int min, int max) {
+    private static void updateFromInput(JTextField input, JSlider slider, int max, String name) {
         try {
             int value = Integer.parseInt(input.getText().trim());
-            value = Math.max(min, Math.min(max, value));  // clamp
+            value = Math.max(0, Math.min(max, value));
             slider.setValue(value);
             input.setText(String.valueOf(value));
-            // Update spawn count
-            String name = ((JLabel)((JPanel)input.getParent()).getComponent(0)).getText();
-            name = name.replace(":", "").trim(); // extract name
             spawnCounts.put(name.toUpperCase().replace(" ", "_"), value);
         } catch (NumberFormatException ex) {
             input.setText(String.valueOf(slider.getValue()));
