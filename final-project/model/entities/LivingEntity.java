@@ -173,25 +173,25 @@ public abstract class LivingEntity extends Entity {
     public final void act(Simulation simulation) {
         if (!isPresent()) return;
 
-        if (DebugLogger.isEnabled()) {
+        if (isEnabled()) {
             System.out.println();
             System.out.println();
-            DebugLogger.debug("=== " + this + " acting (initiative: " + this.getInitiative() + ") ===");
+            debug("=== " + this + " acting (initiative: " + this.getInitiative() + ") ===");
         }
 
         for (Behavior behavior : getBehaviors()) {
             Action action = behavior.execute(this, simulation);
 
-            if (DebugLogger.isEnabled()) {
+            if (isEnabled()) {
                 String debugInfo = behavior.getDebugInfo(this);
                 if (debugInfo != null && !debugInfo.trim().isEmpty()) {
-                    DebugLogger.info(this + " → " + debugInfo);
+                    info(this + " → " + debugInfo);
                 }
             }
 
             if (action == Action.DEAD || action == Action.TRANSFORM) {
-                if (DebugLogger.isEnabled()) {
-                    DebugLogger.combat(this + " stopped acting: " + action);
+                if (isEnabled()) {
+                    combat(this + " stopped acting: " + action);
                 }
                 break;
             }

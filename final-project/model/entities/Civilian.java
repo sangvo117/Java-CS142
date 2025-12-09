@@ -33,7 +33,7 @@ public class Civilian extends Human {
 
         @Override
         public Action execute(LivingEntity me, Simulation sim) {
-            if (DebugLogger.isEnabled()) {
+            if (isEnabled()) {
                 debug("[MOVE] Before: " + me + " scanning zombies");
             }
 
@@ -41,14 +41,14 @@ public class Civilian extends Human {
 
             if (zombie != null && me.getCell().distanceTo(zombie.getCell()) <= ZOMBIE_REPEL_RANGE) {
                 sim.moveAwayFrom(me, zombie);
-                if (DebugLogger.isEnabled()) {
+                if (isEnabled()) {
                     debug("[MOVE] After: " + me + " moved away from " + zombie);
                 }
 
                 return Action.MOVE;
             }
 
-            if (DebugLogger.isEnabled()) {
+            if (isEnabled()) {
                 debug("[MOVE] After: " + me + " moved away from no one");
             }
             return Action.IDLE;
