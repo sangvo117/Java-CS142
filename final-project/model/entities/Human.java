@@ -50,7 +50,7 @@ public abstract class Human extends LivingEntity {
 
         @Override
         public Action execute(LivingEntity me, Simulation sim) {
-            if (DebugLogger.isEnabled()) {
+            if (isEnabled()) {
                 pickup("Before: " + me + " scanning for item");
             }
 
@@ -66,7 +66,7 @@ public abstract class Human extends LivingEntity {
                         if (e instanceof Item) {
                             target = (Item) e;
                             target.useOn((Human) me, sim);
-                            if (DebugLogger.isEnabled()) {
+                            if (isEnabled()) {
                                 pickup("After: " + me + " uses " + target);
                             }
                             return Action.PICKUP;
@@ -75,7 +75,7 @@ public abstract class Human extends LivingEntity {
                 }
             }
 
-            if (DebugLogger.isEnabled()) {
+            if (isEnabled()) {
                 pickup("After: " + me + " picks up no item");
             }
             return Action.IDLE;
@@ -95,25 +95,25 @@ public abstract class Human extends LivingEntity {
         @Override
         public Action execute(LivingEntity me, Simulation sim) {
             if (infected) {
-                if (DebugLogger.isEnabled()) {
+                if (isEnabled()) {
                     debug("[INFECT] Before: " + me + " infection timer: " + infectionTurns);
                 }
 
                 decrementInfectionTurns();
 
                 if (infectionTurns == 0) {
-                    if (DebugLogger.isEnabled()) {
+                    if (isEnabled()) {
                         debug("[TRANSFORM] After: " + me + " transform to zombie");
                     }
 
                     return Action.TRANSFORM;
                 }
-                if (DebugLogger.isEnabled()) {
+                if (isEnabled()) {
                     debug("[INFECT] After: " + me + " infection timer: " + infectionTurns);
                 }
                 return Action.INFECT;
             }
-            if (DebugLogger.isEnabled()) {
+            if (isEnabled()) {
                 debug("[INFECT] After: " + me + " healthy");
             }
             return Action.IDLE;

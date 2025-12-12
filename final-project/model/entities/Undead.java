@@ -90,20 +90,20 @@ public abstract class Undead extends LivingEntity {
         @Override
         public Action execute(LivingEntity me, Simulation sim) {
             if (DebugLogger.isEnabled()) {
-                DebugLogger.debug("[HUNT] Before: " + me + " hunting humans");
+                debug("[HUNT] Before: " + me + " hunting humans");
             }
 
             target = sim.findNearest(me.getCell(), Human.class);
             if (target != null) {
                 sim.moveToward(target.getCell(), me);
                 if (DebugLogger.isEnabled()) {
-                    DebugLogger.debug("[HUNT] After: " + me + " hunts " + target);
+                    debug("[HUNT] After: " + me + " hunts " + target);
                 }
                 return Action.MOVE;
             }
 
             if (DebugLogger.isEnabled()) {
-                DebugLogger.debug("[HUNT] After: " + me + " hunts no human");
+                debug("[HUNT] After: " + me + " hunts no human");
             }
             return Action.IDLE;
         }
